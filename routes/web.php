@@ -11,6 +11,8 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\SlideController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\RekomendasiController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ContactController;
 
 // ===========================
 // HALAMAN UTAMA (WELCOME)
@@ -31,7 +33,6 @@ Route::delete('/products/{product}', [ProductController::class, 'destroy'])->nam
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
-
     Route::view('/register', 'auth.register')->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store']);
 });
@@ -72,7 +73,7 @@ Route::get('/about', function () {
 })->name('about');
 
 // ===========================
-// ADMIN: PROMO, CATEGORY, SLIDE (TETAP DI ADMIN GROUP)
+// ADMIN: PROMO, CATEGORY, SLIDE, REKOMENDASI
 // ===========================
 Route::middleware(['auth', 'role:admin'])->group(function () {
     // Kategori
@@ -94,8 +95,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 });
 
 // ===========================
-// ADMIN: REKOMENDASI
+// HALAMAN CONTACT & KOMENTAR
 // ===========================
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::resource('rekomendasi', RekomendasiController::class);
-});
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');

@@ -1,80 +1,70 @@
 <?php
 
+// app/Http/Controllers/RekomendasiController.php
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Rekomendasi;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class RekomendasiController extends Controller
 {
     public function index()
     {
-        $rekomendasis = Rekomendasi::all();
-        return view('rekomendasi.index', compact('rekomendasis'));
-    }
-
-    public function create()
-    {
-        return view('rekomendasi.create');
+        $rekomendasis = Rekomendasi::with('category')->get();
+        $categories = Category::all();
+        return view('rekomendasi.index', compact('rekomendasis', 'categories'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama' => 'required',
-            'deskripsi' => 'nullable',
-            'gambar' => 'nullable|image|max:2048',
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric',
+            'category_id' => 'required|exists:categories,id',
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        $data = $request->all();
-
-        if ($request->hasFile('gambar')) {
-            $data['gambar'] = $request->file('gambar')->store('rekomendasi', 'public');
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('rekomendasi_images', 'public');
         }
 
         Rekomendasi::create($data);
 
-        return redirect()->route('rekomendasi.index')->with('success', 'Data berhasil ditambahkan');
+        return redirect()->back()->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    public function edit($id)
+    public function update(Request $request, Rekomendasi $rekomendasi)
     {
-        $rekomendasi = Rekomendasi::findOrFail($id);
-        return view('rekomendasi.edit', compact('rekomendasi'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $rekomendasi = Rekomendasi::findOrFail($id);
-
-        $request->validate([
-            'nama' => 'required',
-            'deskripsi' => 'nullable',
-            'gambar' => 'nullable|image|max:2048',
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric',
+            'category_id' => 'required|exists:categories,id',
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        $data = $request->all();
-
-        if ($request->hasFile('gambar')) {
-            if ($rekomendasi->gambar) {
-                Storage::disk('public')->delete($rekomendasi->gambar);
+        if ($request->hasFile('image')) {
+            // hapus gambar lama jika ada
+            if ($rekomendasi->image) {
+                Storage::disk('public')->delete($rekomendasi->image);
             }
-            $data['gambar'] = $request->file('gambar')->store('rekomendasi', 'public');
+            $data['image'] = $request->file('image')->store('rekomendasi_images', 'public');
         }
 
         $rekomendasi->update($data);
 
-        return redirect()->route('rekomendasi.index')->with('success', 'Data berhasil diupdate');
+        return redirect()->back()->with('success', 'Produk berhasil diupdate!');
     }
 
-    public function destroy($id)
+    public function destroy(Rekomendasi $rekomendasi)
     {
-        $rekomendasi = Rekomendasi::findOrFail($id);
-        if ($rekomendasi->gambar) {
-            Storage::disk('public')->delete($rekomendasi->gambar);
+        if ($rekomendasi->image) {
+            Storage::disk('public')->delete($rekomendasi->image);
         }
         $rekomendasi->delete();
-        return redirect()->route('rekomendasi.index')->with('success', 'Data berhasil dihapus');
+
+        return redirect()->back()->with('success', 'Produk berhasil dihapus!');
     }
 }

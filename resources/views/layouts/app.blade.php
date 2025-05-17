@@ -4,14 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
+
   <title>{{ config('app.name', 'Nami Bakery') }}</title>
 
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-pZ5XsUipG7SvhRjw6bp7wQ2RymHPXq1jZJSarZTcW+t3X2E4IQqqWqv+7K7kaN0B8zH5uNIs7VJKUhwRf4usw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Global Styles -->
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Quicksand', sans-serif;
     }
     .font-logo {
       font-family: 'Dancing Script', cursive;
@@ -40,10 +48,14 @@
       <!-- Menu -->
       <ul class="flex space-x-6 font-semibold text-[#4B2E2E]">
         <li><a href="{{ route('about') }}" class="relative group px-3 py-2 transition rounded-xl hover:bg-white hover:text-[#D4AF37] hover:shadow-md">About Us</a></li>
-        <li><a href="#" class="relative group px-3 py-2 transition rounded-xl hover:bg-white hover:text-[#D4AF37] hover:shadow-md">Social Media</a></li>
         <li><a href="#" class="relative group px-3 py-2 transition rounded-xl hover:bg-white hover:text-[#D4AF37] hover:shadow-md">Menu</a></li>
         <li><a href="#" class="relative group px-3 py-2 transition rounded-xl hover:bg-white hover:text-[#D4AF37] hover:shadow-md">Promo</a></li>
         <li><a href="#" class="relative group px-3 py-2 transition rounded-xl hover:bg-white hover:text-[#D4AF37] hover:shadow-md">Berita</a></li>
+<li>
+  <a href="{{ route('contact') }}" class="relative group px-3 py-2 transition rounded-xl hover:bg-white hover:text-[#D4AF37] hover:shadow-md">
+    Contact Us
+  </a>
+</li>
       </ul>
 
       <!-- Keranjang & Akun -->

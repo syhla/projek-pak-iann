@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Comment extends Model
 {
-    use HasFactory;
+protected $fillable = ['nama', 'pesan', 'user_id'];
 
-    protected $fillable = ['nama', 'pesan']; // Sesuaikan dengan kolom yang kamu pakai
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -29,4 +29,11 @@ class WelcomeController extends Controller
             'rekomendasis'
         ));
     }
+
+public function welcome()
+{
+    $comments = Comment::with('user')->latest()->paginate(5); // Ambil komentar terbaru dengan user
+
+    return view('welcome', compact('comments'));
+}
 }
