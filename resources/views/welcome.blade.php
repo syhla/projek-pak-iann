@@ -216,37 +216,50 @@
     </form>
   </div>
 </div>
-
-<section class="max-w-4xl mx-auto px-4 py-12">
-    <h2 class="text-3xl font-bold mb-6 text-[#D77A61]">Komentar Terbaru</h2>
+<section class="max-w-7xl mx-auto px-4 py-12">
+    <h2 class="text-3xl font-bold mb-10 text-[#D77A61] text-center">Komentar Terbaru</h2>
 
     @if(session('success'))
-        <div class="mb-6 p-4 bg-green-100 text-green-700 rounded">
+        <div class="mb-6 p-4 bg-green-100 text-green-700 rounded text-center">
             {{ session('success') }}
         </div>
     @endif
 
     @if($comments->count() > 0)
-        <ul class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($comments as $comment)
-                <li class="p-4 border border-gray-200 rounded shadow-sm bg-white">
-                    <p class="text-gray-800">{{ $comment->content }}</p>
-                    <div class="mt-2 text-sm text-gray-500 italic">
-                        — {{ $comment->user->name ?? 'Anonim' }}, 
-                        <time datetime="{{ $comment->created_at }}">{{ $comment->created_at->diffForHumans() }}</time>
+                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition duration-300">
+                    {{-- Avatar dan nama --}}
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full flex-shrink-0"></div>
+                        <div class="ml-4">
+                            <p class="font-semibold text-gray-800">
+                                {{ '@' . ($comment->nama ?? 'anonim') }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                <time datetime="{{ $comment->created_at }}">
+                                    {{ $comment->created_at->diffForHumans() }}
+                                </time>
+                            </p>
+                        </div>
                     </div>
-                </li>
-            @endforeach
-        </ul>
 
-        <div class="mt-6">
-            {{ $comments->links() }} {{-- Pagination --}}
+                    {{-- Isi komentar --}}
+                    <p class="text-gray-700 italic flex-grow">
+                        "{{ $comment->pesan }}"
+                    </p>
+                </div>
+            @endforeach
+        </div>
+
+        {{-- Pagination --}}
+        <div class="mt-10 text-center">
+            {{ $comments->links() }}
         </div>
     @else
-        <p class="text-gray-600">Belum ada komentar.</p>
+        <p class="text-gray-600 text-center">Belum ada komentar.</p>
     @endif
 </section>
-
 </div>
 
 {{-- Script JS --}}

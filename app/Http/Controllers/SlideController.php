@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class SlideController extends Controller
-{
+{ 
     public function __construct()
     {
         $this->middleware(['auth', 'role:admin']);

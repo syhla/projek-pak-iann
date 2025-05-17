@@ -17,7 +17,7 @@ class WelcomeController extends Controller
         $totalPromo = Promo::count();
         $slides = Slide::all();
         $categories = Category::all();
-        $comments = Comment::latest()->take(5)->get();
+        $comments = Comment::latest()->paginate(5);
         $rekomendasis = Rekomendasi::all();
 
         return view('welcome', compact(
