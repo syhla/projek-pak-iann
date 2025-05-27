@@ -2,63 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Comment;
 
 class ContactController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return view('contact');
-    }
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            // Admin lihat semua komentar
+            $approvedComments = Comment::with('user')->where('status', 'Disetujui')->latest()->get();
+            $rejectedComments = Comment::with('user')->where('status', 'Ditolak')->latest()->get();
+            $comments = Comment::with('user')->latest()->get();
+        } else {
+            // Pengunjung lihat hanya Disetujui & Ditolak
+            $approvedComments = Comment::with('user')->where('status', 'Disetujui')->latest()->get();
+            $rejectedComments = Comment::with('user')->where('status', 'Ditolak')->latest()->get();
+            $comments = $approvedComments->merge($rejectedComments)->sortByDesc('created_at');
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return view('contact', compact('comments', 'approvedComments', 'rejectedComments'));
     }
 }

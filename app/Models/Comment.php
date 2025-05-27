@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Comment extends Model
 {
-use HasFactory;
+    protected $fillable = ['user_id', 'pesan', 'status'];
 
-    // user_id dihapus karena tidak dipakai
-    protected $fillable = ['nama', 'pesan'];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -1,64 +1,64 @@
-@extends('layouts.app') {{-- Pastikan file layouts/app.blade.php tersedia --}}
+@extends('layouts.app')
 @section('content')
 
 {{-- Hero Section --}}
-<section class="text-center py-16 px-6 bg-[#FFF5EC]">
-    <h1 class="text-4xl md:text-5xl font-logo text-[#4B2E2E] mb-6">Hello! We are Namibekery</h1>
-    <p class="max-w-3xl mx-auto text-lg leading-relaxed text-[#4B2E2E]">
-        “Namibekery is a local artisan bakery, meaning of ‘EVERY SLICE MATTERS’. We first opened our doors in 2020,
-        and now we proudly serve in multiple cities across Indonesia. Namibekery is dedicated to crafting fresh,
-        delicious baked goods daily using only premium, natural ingredients. Each creation is made with love,
-        passion, and a touch of home.”
-    </p>
-    <div class="italic text-[#4B2E2E] mt-8 text-xl">We Are Namibekery</div>
+<section class="text-center py-16 px-6 bg-[#F3F8DD]">
+  <h1 class="text-6xl md:text-5xl font-logo text-[#D4AF37] mb-6">Hello! Kami Nami Bakery</h1>
+  <p class="max-w-3xl mx-auto text-lg leading-relaxed text-[#4B2E2E]">
+“Nami Bakery adalah toko roti artisan lokal yang berarti ‘SETIAP IRISAN BERARTI’. Kami pertama kali membuka toko pada tahun 2020, dan kini dengan bangga melayani pelanggan di berbagai kota di seluruh Indonesia. Nami Bakery berdedikasi untuk menghadirkan makanan panggang segar dan lezat setiap hari, hanya menggunakan bahan-bahan alami premium. Setiap kreasi kami dibuat dengan cinta, gairah, dan sentuhan kehangatan rumah.”  </p>
 </section>
 
 {{-- Our Story Section --}}
-<section class="bg-[#EAC6C1] text-white text-center py-16 px-6">
-    <h2 class="text-3xl font-logo mb-3">Our Story</h2>
-    <h3 class="text-xl font-semibold">
-        A HOMEGROWN BAKERY SERVING A HEARTFELT SELECTION OF FRESHLY BAKED GOODS
-    </h3>
+<section class="bg-[#556B2F] text-white text-center py-16 px-6">
+  <h2 class="text-4xl font-logo text-[#D4AF37] mb-3">Cerita Kita</h2>
+  <h3 class="text-xl font-semibold mx-auto">
+TOKO ROTI RUMAHAN DENGAN ANEKA PRODUK PANGANGGAN SEGAR SETIAP HARI.  </h3>
 </section>
 
-{{-- Store Image --}}
-<section class="py-12 px-6">
-    <img src="{{ asset('EMPINK KUE.jpg') }}" alt="Namibekery Store"
-         class="w-full max-w-4xl mx-auto shadow-lg rounded-lg">
+{{-- Global Vision Split Layout (Isi dari global section dipindah ke sini) --}}
+<section class="py-16 px-6 bg-white max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+  <div class="px-4 md:px-6">
+    <h3 class="text-3xl font-semibold text-[#D4AF37] mb-4">Nami Bakery</h3>
+    <p class="text-[#4B2E2E] leading-relaxed">
+Didirikan pada tahun 2020, Nami Bakery berkembang dari toko keluarga kecil menjadi merek yang dipercaya pelanggan di berbagai kota di Indonesia. Kami berkomitmen memperluas jangkauan sambil tetap setia pada nilai inti: menggunakan bahan premium dan memanggang dengan cinta.    </p>
+    <h4 class="text-[#556B2F] italic text-xl mt-4">Kami adalah bakery lokal Indonesia dengan visi global</h4>
+
+  </div>
+
+  <div class="flex justify-center">
+    <img src="{{ asset('EMPINK KUE.jpg') }}" alt="Ingredients and Bread"
+         class="w-full max-w-md rounded-lg shadow-lg">
+  </div>
 </section>
 
-{{-- Healthy Baked Goods Section (Seperti TOUS les JOURS) --}}
-<section class="py-16 px-6 bg-white grid md:grid-cols-2 gap-8 items-center">
-    <img src="{{ asset('ROTI.jpg') }}" alt="Kneading Dough"
-         class="w-full max-w-md mx-auto shadow-md rounded-md">
-    
-    <div>
-        <h3 class="text-2xl text-[#E18564] font-semibold italic mb-2">Healthy baked goods</h3>
-        <h4 class="text-lg text-green-800 italic mb-4">with the purest and finest ingredients</h4>
-        <p class="text-gray-700 leading-relaxed">
-            We offer a wide variety of artisan baked goods—from breads, cakes, and cookies to special seasonal items.
-            Each product is thoughtfully prepared using only the best ingredients. At Namibekery, we believe that 
-            every slice matters and that freshness is the key to quality. That’s why our products are baked fresh daily
-            just for you.
-        </p>
-    </div>
+{{-- Healthy Baked Goods Section --}}
+<section class="py-16 px-6 bg-white grid md:grid-cols-2 gap-8 items-center max-w-7xl mx-auto">
+  <img src="{{ asset('ROTI.jpg') }}" alt="Kneading Dough"
+       class="w-full max-w-md mx-auto shadow-md rounded-md">
+  
+  <div>
+    <h3 class="text-2xl text-[#D4AF37] font-semibold italic mb-2">Makanan Panggang Yang Sehat</h3>
+    <h4 class="text-lg text-[#556B2F] italic mb-4">dengan bahan-bahan paling murni dan terbaik
+</h4>
+    <p class="text-[#4B2E2E] leading-relaxed">
+Kami menawarkan berbagai macam makanan panggang buatan tangan—mulai dari roti, kue, dan biskuit hingga makanan musiman spesial.
+Setiap produk disiapkan dengan cermat hanya menggunakan bahan-bahan terbaik. Di Nami Bakery, kami percaya bahwa
+setiap potong itu penting dan kesegaran adalah kunci kualitas. Itulah sebabnya produk kami dipanggang segar setiap hari
+hanya untuk Anda.    </p>
+  </div>
 </section>
 
-{{-- Global Section --}}
-<section class="py-16 px-6 bg-[#FDF5EF] grid md:grid-cols-2 gap-8 items-center">
-    <div>
-        <h4 class="text-green-900 italic text-lg mb-1">We are local Indonesian Bakery with a global vision</h4>
-        <h3 class="text-2xl font-semibold text-[#E18564] mb-4">NAMIBEKERY</h3>
-        <p class="text-gray-700 leading-relaxed">
-            Founded in 2020, Namibekery has grown from a small family-owned store into a growing brand with loyal 
-            customers across cities in Indonesia. We aim to expand our reach while staying true to our core values: 
-            using premium ingredients and baking with love.
-        </p>
-        <p class="mt-4 text-[#E18564] font-medium">Promise to bring you joy in every bite</p>
-    </div>
+{{-- Store Pertama (Teks di atas, gambar besar di bawah) --}}
+<section class="py-16 px-6 bg-[#F3F8DD] text-center">
+  <h3 class="text-6xl md:text-5xl font-logo text-[#D4AF37] mb-4">Our First Store</h3>
+  <p class="max-w-3xl mx-auto text-[#4B2E2E] text-lg leading-relaxed mb-10">
+Pada tahun 2020, kami membuka toko pertama kami — sebuah toko roti yang nyaman, dipenuhi aroma roti segar dan kehangatan rumah.
+Di sinilah perjalanan Nami Bakery dimulai. Lebih dari sekadar toko, ini adalah wujud kenangan akan asal usul, gairah, dan kecintaan kami terhadap seni membuat kue.  </p>
 
-    <img src="{{ asset('CHUOX.jpg') }}" alt="Ingredients and Bread"
-         class="w-[300PX] max-w-md mx-auto shadow-md rounded-md">
+  <div class="w-full max-w-5xl mx-auto">
+    <img src="{{ asset('EMPINK KUE.jpg') }}" alt="Our First Store"
+         class="w-full rounded-lg shadow-xl">
+  </div>
 </section>
 
 @endsection

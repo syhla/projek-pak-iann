@@ -1,9 +1,9 @@
 <?php
 
-// app/Http/Controllers/RekomendasiController.php
 namespace App\Http\Controllers;
 
 use App\Models\Rekomendasi;
+use App\Models\Category; // Jangan lupa import ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,10 +47,13 @@ class RekomendasiController extends Controller
 
         if ($request->hasFile('image')) {
             // hapus gambar lama jika ada
-            if ($rekomendasi->image) {
+            if ($rekomendasi->image && Storage::disk('public')->exists($rekomendasi->image)) {
                 Storage::disk('public')->delete($rekomendasi->image);
             }
             $data['image'] = $request->file('image')->store('rekomendasi_images', 'public');
+        } else {
+            // kalau gak upload image baru, tetap pakai gambar lama
+            $data['image'] = $rekomendasi->image;
         }
 
         $rekomendasi->update($data);
@@ -60,9 +63,10 @@ class RekomendasiController extends Controller
 
     public function destroy(Rekomendasi $rekomendasi)
     {
-        if ($rekomendasi->image) {
+        if ($rekomendasi->image && Storage::disk('public')->exists($rekomendasi->image)) {
             Storage::disk('public')->delete($rekomendasi->image);
         }
+
         $rekomendasi->delete();
 
         return redirect()->back()->with('success', 'Produk berhasil dihapus!');

@@ -11,15 +11,15 @@ return new class extends Migration
      */
 public function up()
 {
-    Schema::table('comments', function (Blueprint $table) {
-        $table->unsignedBigInteger('user_id')->nullable(); // bisa null karena pengunjung bukan user login
+    Schema::table('new_products', function (Blueprint $table) {
+        $table->boolean('is_menu_displayed')->default(false);
     });
 }
 
 public function down()
 {
-    Schema::table('comments', function (Blueprint $table) {
-        $table->dropColumn('user_id');
+    Schema::table('new_products', function (Blueprint $table) {
+        $table->dropColumn('is_menu_displayed');
     });
 }
 };

@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Promo extends Model
 {
-    use HasFactory;
-
-    protected $fillable = ['title', 'description', 'discount'];
+    protected $fillable = [
+        'title',
+        'description',
+        'original_price',
+        'discount_percentage',
+        'tanggal_mulai',
+        'tanggal_akhir',
+        'gambar',
+    ];
 }

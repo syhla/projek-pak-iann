@@ -9,16 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
+public function up()
+{
 Schema::create('comments', function (Blueprint $table) {
     $table->id();
-    $table->string('nama');
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
     $table->text('pesan');
+    $table->boolean('is_approved')->default(false);
     $table->timestamps();
 });
-    }
-
+}
     /**
      * Reverse the migrations.
      */

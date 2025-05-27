@@ -1,390 +1,597 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-.carousel-slide {
-  opacity: 0;
-  transition: opacity 1s ease-in-out;
-}
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 
-.carousel-slide.opacity-100 {
-  opacity: 1;
-}
+<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 py-12 px-6">
+<div class="max-w-7xl mx-auto sm:px-6 lg:px-8 py-4 px-6">
 
-/* Hide scrollbar for WebKit-based browsers */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+    <div class="flex items-center justify-between mb-6">
+    <h1 class="text-4xl font-bold text-gray-800">Dashboard Admin</h1>
+    <a href="{{ route('welcome') }}"
+       class="bg-indigo-600 text-white px-4 py-2 rounded-lg mt0 hover:bg-indigo-700 transition">
+      Lihat Halaman Welcome
+    </a>
+  </div>
 
-/* Hide scrollbar for IE, Edge and Firefox */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;      /* Firefox */
-}
+{{-- resources/views/admin/dashboard.blade.php --}}
+<div x-data="{ tab: 'pending' }" class="p-6 bg-white mb-9 rounded-lg shadow-md">
+  <h1 class="text-2xl font-bold mb-6 text-gray-800">Daftar Komentar</h1>
 
-/* Biar gambar preview tidak terlalu besar dan proporsional */
-#createImagePreview,
-#editImagePreview {
-  max-width: 100%;
-  height: 150px;       /* tinggi tetap */
-  object-fit: cover;   /* proporsi gambar tetap bagus */
-  border-radius: 0.5rem; /* rounded */
-}
-</style>
-
-<div class="bg-white py-12 px-6">
-
-{{-- Form Upload Gambar untuk Slide --}}
-@auth
-    @if(auth()->user()->hasRole('admin'))
-        <div class="mb-8">
-            <form action="{{ route('slides.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="flex items-end gap-4">
-                    <div>
-                        <label for="image" class="block text-lg font-bold mb-1">Upload Gambar</label>
-                        <input type="file" name="image" class="p-2 border text-sm w-72">
-                        @error('image')
-                            <div class="text-red-500 text-sm mt-2">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="pb-1">
-                        <button type="submit" class="bg-pink-400 hover:bg-pink-500 text-white py-2 px-4 rounded-md">Upload</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    @endif
-@endauth
-
-{{-- Carousel Slider --}}
-<div class="relative overflow-hidden mb-12 rounded-lg shadow-md">
-    <div id="slider" class="relative w-full h-[500px]">
-        @foreach ($slides as $index => $slide)
-            <div class="carousel-slide absolute inset-0 transition-opacity duration-1000 {{ $index === 0 ? 'opacity-100' : 'opacity-0' }}">
-                <img src="{{ asset('storage/' . $slide->image_path) }}" class="w-full h-full object-cover rounded-md" alt="Slide Image">
-                
-                @auth
-                    @if(auth()->user()->hasRole('admin'))
-                        <form action="{{ route('slides.destroy', $slide) }}" method="POST" class="absolute top-4 right-4 z-10">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="bg-red-400 hover:bg-red-500 text-white p-2 rounded-full">Delete</button>
-                        </form>
-                    @endif
-                @endauth
-            </div>
-        @endforeach
-    </div>
-</div>
-
-  {{-- Tombol Create Category --}}
-  @auth
-    @if(auth()->user()->hasRole('admin'))
-    <div class="mb-8 text-center">
-      <button onclick="openCreateCategoryModal()" class="bg-rose-400 hover:bg-rose-500 text-white py-2 px-4 rounded-md">Create New Category</button>
-    </div>
-    @endif
-  @endauth
-
-  {{-- Kategori Produk --}}
-  <div class="py-12 px-6">
-    <h2 class="text-4xl font-bold text-center mb-10 text-rose-600">Shop By Categories 🎀</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-      @foreach($categories as $category)
-      <div class="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition-shadow duration-300 transform hover:scale-105 border border-rose-200">
-        @if($category->image)
-          <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="w-full h-48 object-cover">
-        @else
-          <div class="w-full h-48 bg-pink-200 flex items-center justify-center text-rose-500 font-semibold">No Image</div>
-        @endif
-
-        <div class="p-6 text-center">
-          <h3 class="text-xl font-semibold text-rose-700">{{ $category->name }}</h3>
-          @auth
-            @if(auth()->user()->hasRole('admin'))
-            <div class="mt-4 flex justify-center gap-4">
-              <button onclick="openEditModal({{ $category->id }}, '{{ $category->name }}', '{{ $category->image ? asset('storage/' . $category->image) : '' }}')" class="bg-yellow-400 hover:bg-yellow-500 text-white py-2 px-4 rounded-md">Edit</button>
-              <form action="{{ route('categories.destroy', $category) }}" method="POST" class="mt-2">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-md">Delete</button>
-              </form>
-            </div>
-            @endif
-          @endauth
-        </div>
-      </div>
+  <!-- Tabs -->
+  <div class="mb-4 border-b border-gray-200">
+    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      @foreach(['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'all' => 'Semua'] as $key => $label)
+        <button
+          @click="tab = '{{ $key }}'"
+          :class="tab === '{{ $key }}' ? 'border-[#D77A61] text-[#D77A61]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">
+          {{ $label }}
+        </button>
       @endforeach
+    </nav>
+  </div>
+
+  <!-- Table Wrapper -->
+  <div class="overflow-x-auto max-h-[400px] overflow-y-auto border border-gray-200 rounded-md shadow-inner">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50 sticky top-0 z-10">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Komentar</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+        </tr>
+      </thead>
+
+      <!-- Tab Menunggu -->
+      <tbody x-show="tab === 'pending'" x-cloak>
+        @forelse ($comments->where('status', 'Menunggu') as $komentar)
+          <tr class="hover:bg-pink-50 transition">
+            <td class="px-6 py-4 font-semibold text-gray-700">{{ $komentar->user->nama ?? 'Anonim' }}</td>
+            <td class="px-6 py-4 text-gray-600 max-w-xs truncate">{{ $komentar->pesan }}</td>
+            <td class="px-6 py-4">
+              <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Menunggu</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex space-x-2">
+                <form method="POST" action="{{ route('admin.komentar.approve', $komentar->id) }}">
+                  @csrf
+                  <button type="submit" onclick="return confirm('Setujui komentar ini?');"
+                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs">Setujui</button>
+                </form>
+                <form method="POST" action="{{ route('admin.komentar.reject', $komentar->id) }}">
+                  @csrf
+                  <button type="submit" onclick="return confirm('Tolak komentar ini?');"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-xs">Tolak</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        @empty
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Belum ada komentar yang menunggu.</td>
+          </tr>
+        @endforelse
+      </tbody>
+
+      <!-- Tab Disetujui -->
+      <tbody x-show="tab === 'approved'" x-cloak>
+        @forelse ($comments->where('status', 'Disetujui') as $komentar)
+          <tr class="hover:bg-pink-50 transition">
+            <td class="px-6 py-4 font-semibold text-gray-700">{{ $komentar->user->nama ?? 'Anonim' }}</td>
+            <td class="px-6 py-4 text-gray-600 max-w-xs truncate">{{ $komentar->pesan }}</td>
+            <td class="px-6 py-4">
+              <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
+            </td>
+            <td class="px-6 py-4"></td>
+          </tr>
+        @empty
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Belum ada komentar yang disetujui.</td>
+          </tr>
+        @endforelse
+      </tbody>
+
+      <!-- Tab Ditolak -->
+      <tbody x-show="tab === 'rejected'" x-cloak>
+        @forelse ($comments->where('status', 'Ditolak') as $komentar)
+          <tr class="hover:bg-pink-50 transition">
+            <td class="px-6 py-4 font-semibold text-gray-700">{{ $komentar->user->nama ?? 'Anonim' }}</td>
+            <td class="px-6 py-4 text-gray-600 max-w-xs truncate">{{ $komentar->pesan }}</td>
+            <td class="px-6 py-4">
+              <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Rejected</span>
+            </td>
+            <td class="px-6 py-4"></td>
+          </tr>
+        @empty
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Belum ada komentar yang ditolak.</td>
+          </tr>
+        @endforelse
+      </tbody>
+
+      <!-- Tab Semua -->
+      <tbody x-show="tab === 'all'" x-cloak>
+        @forelse ($comments as $komentar)
+          <tr class="hover:bg-pink-50 transition">
+            <td class="px-6 py-4 font-semibold text-gray-700">{{ $komentar->user->nama ?? 'Anonim' }}</td>
+            <td class="px-6 py-4 text-gray-600 max-w-xs truncate">{{ $komentar->pesan }}</td>
+            <td class="px-6 py-4">
+              @php
+                $status = $komentar->status;
+                $colors = [
+                  'Disetujui' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Approved'],
+                  'Ditolak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Rejected'],
+                  'Menunggu' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu'],
+                ];
+              @endphp
+              <span class="px-2 inline-flex text-xs font-semibold rounded-full {{ $colors[$status]['bg'] }} {{ $colors[$status]['text'] }}">
+                {{ $colors[$status]['label'] }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              @if($komentar->status === 'Menunggu')
+                <div class="flex space-x-2">
+                  <form method="POST" action="{{ route('admin.komentar.approve', $komentar->id) }}">
+                    @csrf
+                    <button type="submit" onclick="return confirm('Setujui komentar ini?');"
+                      class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs">Setujui</button>
+                  </form>
+                  <form method="POST" action="{{ route('admin.komentar.reject', $komentar->id) }}">
+                    @csrf
+                    <button type="submit" onclick="return confirm('Tolak komentar ini?');"
+                      class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-xs">Tolak</button>
+                  </form>
+                </div>
+              @endif
+            </td>
+          </tr>
+        @empty
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Belum ada komentar.</td>
+          </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <!-- Kartu statistik -->
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-gray-600 text-sm">Total Produk</h2>
+      <p class="text-2xl font-semibold text-indigo-600">{{ $totalProduk }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-gray-600 text-sm">Total Transaksi</h2>
+      <p class="text-2xl font-semibold text-green-600">{{ $totalTransaksi }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-gray-600 text-sm">Total Pelanggan</h2>
+      <p class="text-2xl font-semibold text-blue-600">{{ $totalPelanggan }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-gray-600 text-sm">Total Promo Saat Ini</h2>
+      <p class="text-2xl font-semibold text-red-600">{{ $totalPromo }}</p>
     </div>
   </div>
 
-  {{-- Modal Create Category --}}
-  <div id="createCategoryModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden z-50">
-      <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
-          <h2 class="text-2xl font-bold mb-4 text-rose-600">Create New Category</h2>
-          <form id="createCategoryForm" method="POST" enctype="multipart/form-data" action="{{ route('categories.store') }}">
-              @csrf
-              <div class="mb-4">
-                  <label for="name" class="block mb-1 font-semibold text-rose-700">Category Name</label>
-                  <input type="text" name="name" class="w-full p-2 border rounded-md" required>
-              </div>
-              <div class="mb-4">
-                  <label for="image" class="block mb-1 font-semibold text-rose-700">Image</label>
-                  <input type="file" name="image" class="w-full p-2 border rounded-md">
-              </div>
-              <div class="flex justify-end gap-2">
-                  <button type="button" onclick="closeCreateCategoryModal()" class="bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-md">Close</button>
-                  <button type="submit" class="bg-blue-400 hover:bg-blue-500 text-white py-2 px-4 rounded-md">Create</button>
-              </div>
-          </form>
-      </div>
+  {{-- Transaksi Terbaru --}}
+  <div class="bg-white shadow rounded-lg p-6 mb-10">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Transaksi Terbaru</h2>
+    <ul>
+      @forelse ($transaksiTerbaru as $transaksi)
+        <li class="border-b border-gray-200 py-2">
+          <span class="font-medium">{{ $transaksi->user->name }}</span> membeli
+          <span class="text-indigo-600">{{ $transaksi->produk->name }}</span>
+        </li>
+      @empty
+        <li class="text-gray-500">Belum ada transaksi.</li>
+      @endforelse
+    </ul>
   </div>
 
-  {{-- Modal Edit Category --}}
-  <div id="editCategoryModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
-      <h2 class="text-2xl font-bold mb-4 text-rose-600">Edit Category</h2>
-      <form id="editCategoryForm" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
-        <div class="mb-4">
-          <label class="block mb-1 font-semibold text-rose-700">Category Name</label>
-          <input type="text" name="name" id="editCategoryName" class="w-full p-2 border rounded-md" required>
-        </div>
-        <div class="mb-4">
-          <label class="block mb-1 font-semibold text-rose-700">Image</label>
-          <input type="file" name="image" id="editCategoryImage" class="w-full p-2 border rounded-md">
-          <img id="editCategoryImagePreview" src="" alt="Image Preview" class="mt-2 w-24 h-24 object-cover rounded border">
-        </div>
-<div class="flex">
-  <div class="ml-auto flex gap-2">
-    <button type="button" onclick="closeEditModal()" class="bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-md">Close</button>
-    <button type="submit" class="bg-blue-400 hover:bg-blue-500 text-white py-2 px-4 rounded-md">Save</button>
-  </div>
-</div>
-      </form>
-      
-    </div>
+  {{-- Pesanan Custom Kue --}}
+  <div class="bg-white shadow rounded-lg p-6 mb-10">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Pesanan Custom Kue ({{ $jumlahPesananBaru }} Belum Diproses)</h2>
+    <ul>
+      @forelse ($customOrders as $order)
+        <li class="border-b border-gray-200 py-2">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="font-medium">{{ $order->nama_pemesan }}</span> pesan <span class="text-pink-600">{{ $order->jenis_kue }}</span>
+              <br><span class="text-sm text-gray-500">Status: {{ $order->status }}</span>
+            </div>
+            <div>
+              <a href="{{ route('custom-orders.show', $order->id) }}" class="text-indigo-600 hover:underline text-sm">Detail</a>
+            </div>
+          </div>
+        </li>
+      @empty
+        <li class="text-gray-500">Belum ada pesanan custom.</li>
+      @endforelse
+    </ul>
   </div>
 
-      <!-- Button Tambah Produk -->
-<div class="flex justify-end mb-4 px-10">
-  <button onclick="openCreateModal()" class="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition">
-    + Tambah Produk
-  </button>
-</div>
+  <div class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-6">Kelola Produk</h2>
 
-<!-- Section Rekomendasi Produk -->
-<div class="relative">
-  <!-- Tombol kiri -->
-  <button onclick="scrollCarousel(-1)" class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow p-2 rounded-full hover:bg-gray-100 transition">
-    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-  </button>
+    {{-- Flash message --}}
+    @if(session('success'))
+        <div class="bg-green-100 p-3 mb-4 text-green-800 rounded shadow">
+            {{ session('success') }}
+        </div>
+    @endif
 
-  <!-- Wrapper scroll -->
-  <div id="carouselContainer" class="flex overflow-x-auto scroll-smooth space-x-4 px-10 scrollbar-hide">
-    @foreach($rekomendasis as $item)
-    <div class="flex-none w-1/4">
-      <div class="bg-white shadow rounded-2xl overflow-hidden">
-        <div class="relative">
-          <img src="{{ asset('storage/' . $item->image) }}" class="w-full h-48 object-cover" alt="{{ $item->name }}">
-          <span class="absolute top-2 left-2 bg-red-600 text-white text-xs rounded-full px-3 py-1">HOT</span>
-        </div>
-        <div class="p-4 text-center">
-          <h3 class="text-lg font-semibold text-pink-600">{{ $item->name }}</h3>
-          <p class="text-sm text-gray-500">{{ $item->description }}</p>
-          <p class="text-pink-600 font-bold mt-2">Rp {{ number_format($item->price, 0, ',', '.') }}</p>
-        </div>
-        <div class="flex justify-center gap-2 pb-4">
-          <button 
-            onclick="openEditModal('{{ $item->id }}', '{{ addslashes($item->name) }}', {{ $item->price }}, '{{ addslashes($item->description) }}', '{{ $item->image }}')" 
-            class="text-sm bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 transition">
-            Edit
-          </button>
-          <form action="{{ route('rekomendasi.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin hapus produk ini?');">
+    {{-- Form tambah produk --}}
+    <div class="bg-white p-6 rounded-2xl shadow mb-8">
+        <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
-            @method('DELETE')
-            <button class="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">Hapus</button>
-          </form>
-        </div>
-      </div>
+
+            <div>
+                <label class="block font-semibold mb-1">Nama Produk</label>
+                <input type="text" name="name" class="w-full border p-2 rounded" value="{{ old('name') }}" required>
+                @error('name') <div class="text-red-600 mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div>
+                <label class="block font-semibold mb-1">Deskripsi</label>
+                <textarea name="description" class="w-full border p-2 rounded" rows="4">{{ old('description') }}</textarea>
+                @error('description') <div class="text-red-600 mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block font-semibold mb-1">Harga</label>
+                    <input type="number" name="price" class="w-full border p-2 rounded" value="{{ old('price') }}" required>
+                    @error('price') <div class="text-red-600 mt-1">{{ $message }}</div> @enderror
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Rating</label>
+                    <input type="number" name="rating" min="0" max="5" step="0.1" class="w-full border p-2 rounded" value="{{ old('rating') }}">
+                    @error('rating') <div class="text-red-600 mt-1">{{ $message }}</div> @enderror
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Gambar</label>
+                    <input type="file" name="image" class="w-full border p-2 rounded" required>
+                    @error('image') <div class="text-red-600 mt-1">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-6 mt-4">
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" name="is_today_available" value="1" {{ old('is_today_available') ? 'checked' : '' }}>
+                    <span>Tersedia Hari Ini</span>
+                </label>
+
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" name="is_recommended" value="1" {{ old('is_recommended') ? 'checked' : '' }}>
+                    <span>Rekomendasi</span>
+                </label>
+            </div>
+
+            <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow">
+                Tambah Produk
+            </button>
+        </form>
     </div>
-    @endforeach
-  </div>
 
-  <!-- Tombol kanan -->
-  <button onclick="scrollCarousel(1)" class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow p-2 rounded-full hover:bg-gray-100 transition">
-    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  </button>
+    {{-- Tabel produk --}}
+    <div class="bg-white p-6 rounded-2xl shadow">
+        <table class="w-full border-collapse border border-gray-300 text-left">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="p-3 border border-gray-300">Gambar</th>
+                    <th class="p-3 border border-gray-300">Nama</th>
+                    <th class="p-3 border border-gray-300">Harga</th>
+                    <th class="p-3 border border-gray-300 text-center">Tersedia Hari Ini</th>
+                    <th class="p-3 border border-gray-300 text-center">Rekomendasi</th>
+                    <th class="p-3 border border-gray-300">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($products as $product)
+                    <tr class="border-t border-gray-300 hover:bg-gray-50">
+                        <td class="p-2 border border-gray-300">
+                            <img src="{{ asset('storage/' . $product->image) }}" width="80" class="rounded" alt="{{ $product->name }}">
+                        </td>
+                        <td class="p-2 border border-gray-300 font-semibold">{{ $product->name }}</td>
+                        <td class="p-2 border border-gray-300">Rp {{ number_format($product->price, 0, ',', '.') }}</td>
+                        <td class="p-2 border border-gray-300 text-center">
+                            {!! $product->is_today_available ? '✅' : '❌' !!}
+                        </td>
+                        <td class="p-2 border border-gray-300 text-center">
+                            {!! $product->is_recommended ? '✅' : '—' !!}
+                        </td>
+                        <td class="p-2 border border-gray-300">
+                            <form action="{{ route('products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Yakin hapus produk ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:underline">🗑 Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-gray-600">Belum ada produk</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<!-- Modal Tambah Produk -->
-<div id="createModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-xl shadow-lg w-96 p-6 relative">
-    <h2 class="text-xl font-semibold mb-4 text-center text-pink-600">Tambah Produk</h2>
-    <form action="{{ route('rekomendasi.store') }}" method="POST" enctype="multipart/form-data">
-      @csrf
-      <label class="block mb-2 font-semibold text-gray-700">Nama Produk</label>
-      <input type="text" name="name" required class="w-full border rounded px-3 py-2 mb-3 focus:outline-pink-500" />
 
-      <label class="block mb-2 font-semibold text-gray-700">Harga</label>
-      <input type="number" name="price" required class="w-full border rounded px-3 py-2 mb-3 focus:outline-pink-500" />
 
-      <label class="block mb-2 font-semibold text-gray-700">Deskripsi</label>
-      <textarea name="description" required class="w-full border rounded px-3 py-2 mb-3 focus:outline-pink-500"></textarea>
-
-      <label class="block mb-2 font-semibold text-gray-700">Gambar</label>
-      <input type="file" name="image" accept="image/*" required class="w-full mb-4" onchange="previewCreateImage(event)" />
-      <img id="createImagePreview" class="w-full h-48 object-cover rounded mb-4 hidden" alt="Preview Gambar" />
-
-      <div class="flex justify-end gap-3">
-        <button type="button" onclick="closeCreateModal()" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition">Batal</button>
-        <button type="submit" class="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition">Simpan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Edit Produk -->
-<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-xl shadow-lg w-96 p-6 relative">
-    <h2 class="text-xl font-semibold mb-4 text-center text-pink-600">Edit Produk</h2>
-    <form id="editForm" method="POST" enctype="multipart/form-data">
-      @csrf
-      @method('PUT')
-      <label class="block mb-2 font-semibold text-gray-700">Nama Produk</label>
-      <input id="editName" type="text" name="name" required class="w-full border rounded px-3 py-2 mb-3 focus:outline-pink-500" />
-
-      <label class="block mb-2 font-semibold text-gray-700">Harga</label>
-      <input id="editPrice" type="number" name="price" required class="w-full border rounded px-3 py-2 mb-3 focus:outline-pink-500" />
-
-      <label class="block mb-2 font-semibold text-gray-700">Deskripsi</label>
-      <textarea id="editDescription" name="description" required class="w-full border rounded px-3 py-2 mb-3 focus:outline-pink-500"></textarea>
-
-      <label class="block mb-2 font-semibold text-gray-700">Gambar</label>
-      <input id="editImage" type="file" name="image" accept="image/*" class="w-full mb-4" />
-      <img id="editImagePreview" class="w-full h-48 object-cover rounded mb-4" alt="Preview Gambar" />
-
-      <div class="flex justify-end gap-3">
-        <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition">Batal</button>
-        <button type="submit" class="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition">Update</button>
-      </div>
-    </form>
+  {{-- Grafik Transaksi --}}
+  <div class="bg-white shadow rounded-lg p-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Grafik Transaksi per Bulan</h2>
+    <canvas id="transaksiChart"></canvas>
   </div>
 </div>
-</div>
 
+@section('scripts')
 <script>
- // Modal Create
-  function openCreateModal() {
-    document.getElementById('createModal').classList.remove('hidden');
-  }
-  function closeCreateModal() {
-    document.getElementById('createModal').classList.add('hidden');
-    clearCreateForm();
-  }
-  function clearCreateForm() {
-    document.querySelector('#createModal form').reset();
-    document.getElementById('createImagePreview').src = '';
-    document.getElementById('createImagePreview').classList.add('hidden');
-  }
-  function previewCreateImage(event) {
-    const preview = document.getElementById('createImagePreview');
-    preview.src = URL.createObjectURL(event.target.files[0]);
-    preview.classList.remove('hidden');
-  }
+  const bulan = @json($bulan);
+  const jumlahTransaksi = @json($jumlahTransaksi);
 
-  // Modal Edit
-  function openEditModal(id, name, price, description, imageUrl) {
-    const modal = document.getElementById('editModal');
-    modal.classList.remove('hidden');
-
-    document.getElementById('editName').value = name;
-    document.getElementById('editPrice').value = price;
-    document.getElementById('editDescription').value = description;
-    document.getElementById('editImagePreview').src = imageUrl ? `/storage/${imageUrl}` : '';
-
-    const form = document.getElementById('editForm');
-    form.action = `/rekomendasi/${id}`;
-  }
-  function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-  }
-
-  // Preview gambar edit
-  document.getElementById('editImage').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (evt) {
-        document.getElementById('editImagePreview').src = evt.target.result;
+  const ctx = document.getElementById('transaksiChart').getContext('2d');
+  const transaksiChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: bulan,
+      datasets: [{
+        label: 'Jumlah Transaksi',
+        data: jumlahTransaksi,
+        backgroundColor: 'rgba(236, 72, 153, 0.2)', // pink-500 transparan
+        borderColor: 'rgba(236, 72, 153, 1)',       // pink-500 solid
+        borderWidth: 2,
+        borderRadius: 6, // biar bar-nya rounded
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: '#374151' // text-gray-700
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#6B7280' // text-gray-500
+          },
+          grid: {
+            color: '#E5E7EB' // gray-200
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#6B7280'
+          },
+          grid: {
+            color: '#E5E7EB'
+          }
+        }
       }
-      reader.readAsDataURL(file);
     }
   });
-
-    function openCreateCategoryModal() {
-      document.getElementById('createCategoryModal').classList.remove('hidden');
-    }
-
-    function closeCreateCategoryModal() {
-      document.getElementById('createCategoryModal').classList.add('hidden');
-    }
-
-    function openEditModal(id, name, imageUrl) {
-      const modal = document.getElementById('editCategoryModal');
-      modal.classList.remove('hidden');
-
-      document.getElementById('editCategoryName').value = name;
-      document.getElementById('editCategoryImagePreview').src = imageUrl || '';
-
-      const form = document.getElementById('editCategoryForm');
-      form.action = `/categories/${id}`; // Ubah sesuai route update kamu jika perlu
-    }
-
-    function closeEditModal() {
-      document.getElementById('editCategoryModal').classList.add('hidden');
-    }
-
-    // Preview gambar saat upload di modal edit kategori
-    document.getElementById('editCategoryImage').addEventListener('change', function(e){
-      const file = e.target.files[0];
-      if(file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById('editCategoryImagePreview').src = evt.target.result;
-        }
-        reader.readAsDataURL(file);
-      }
-    });
-
-   // Slider otomatis setiap 5 detik
-let currentSlide = 0;
-    const slides = document.querySelectorAll('.carousel-slide');
-
-    function showSlide(index) {
-        slides.forEach((slide, i) => {
-            slide.classList.remove('opacity-100');
-            slide.classList.add('opacity-0');
-            if (i === index) {
-                slide.classList.remove('opacity-0');
-                slide.classList.add('opacity-100');
-            }
-        });
-    }
-
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
-    }
-
-    showSlide(currentSlide);
-    setInterval(nextSlide, 4000);
-
 </script>
+@endsection
+@endsection
+
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Transaksi extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'product_id',
+        'status',
+    ];
+
+    /**
+     * Relasi ke User: satu transaksi dimiliki satu user
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relasi ke Product: satu transaksi terkait satu produk
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Scope untuk transaksi dengan status tertentu (opsional)
+     */
+    public function scopeStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+}
+
+
+// menu blade
+@extends('layouts.app')
+
+@section('content')
+@php
+    $user = auth()->user();
+    $isAdmin = $user && $user->role === 'admin';
+    $currentFilter = request('filter');
+    $currentCategoryId = request()->route('categoryId') ?? request('category_id');
+@endphp
+
+<div class="flex bg-white p-6">
+
+  <!-- Sidebar -->
+  <div class="w-1/5 pr-4">
+    <div class="border p-4 rounded-lg text-[#556B2F] font-semibold">
+      <h2 class="text-lg mb-4">Sorted By</h2>
+      <ul class="space-y-2">
+        <li>
+          <a href="{{ url()->current() }}?filter=available" 
+             class="hover:text-[#D4AF37] {{ $currentFilter == 'available' ? 'font-bold text-[#D4AF37]' : '' }}">
+            Available Product
+          </a>
+        </li>
+        <li>
+          <a href="{{ url()->current() }}?filter=recommended" 
+             class="hover:text-[#D4AF37] {{ $currentFilter == 'recommended' ? 'font-bold text-[#D4AF37]' : '' }}">
+            Recommended
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="border mt-6 p-4 rounded-lg text-[#556B2F] font-semibold">
+      <h2 class="text-lg mb-4">Kategori</h2>
+      <ul class="mt-4 space-y-2">
+        @foreach($categories as $cat)
+          <li>
+            <a href="{{ route('menu.category', ['categoryId' => $cat->id]) }}"
+               class="hover:text-[#D4AF37] {{ $currentCategoryId == $cat->id ? 'font-bold text-[#D4AF37]' : '' }}">
+              {{ $cat->name }}
+            </a>
+          </li>
+        @endforeach
+      </ul>
+    </div>
+  </div>
+
+  <!-- Konten Produk -->
+  <div class="w-4/5">
+
+    @isset($category)
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-[#556B2F]">{{ $category->name }}</h2>
+        <p class="text-gray-600">{{ $category->description }}</p>
+      </div>
+    @endisset
+
+    <div class="grid grid-cols-4 gap-6">
+      @forelse($products as $produk)
+        <div class="border rounded-lg shadow-md overflow-hidden">
+          <img src="{{ asset($produk->image) }}" alt="{{ $produk->name }}" class="w-full h-40 object-cover">
+          <div class="p-4 text-[#556B2F]">
+            <h3 class="font-bold">{{ $produk->name }}</h3>
+            <p class="line-through text-sm text-gray-400">
+              Rp. {{ number_format($produk->original_price ?? ($produk->price + 5000), 0, ',', '.') }}
+            </p>
+            <p class="text-[#D4AF37] font-semibold">
+              Rp. {{ number_format($produk->discount_price ?? $produk->price, 0, ',', '.') }}
+            </p>
+            <div class="mt-2 flex items-center text-yellow-500">
+              ★★★★★
+            </div>
+            <button class="mt-3 w-full bg-[#D4AF37] text-white py-1 rounded">Add to Cart</button>
+          </div>
+        </div>
+      @empty
+        <div class="col-span-4 text-center text-gray-400 italic">
+          Belum ada produk untuk kategori ini.
+        </div>
+      @endforelse
+    </div>
+  </div>
+</div>
+@endsection
+
+
+// menu
+
+@extends('layouts.app')
+
+@section('content')
+@php
+    $user = auth()->user();
+    $isAdmin = $user && $user->role === 'admin';
+    $currentFilter = request('filter');
+    $currentCategoryId = request()->route('categoryId') ?? request('category_id');
+@endphp
+
+<div class="flex bg-white p-6">
+
+  <!-- Sidebar -->
+  <div class="w-1/5 pr-4">
+    <!-- Filter Sorted By -->
+    <div class="border p-4 rounded-lg text-[#556B2F] font-semibold">
+      <h2 class="text-lg mb-4">Sorted By</h2>
+      <ul class="space-y-2">
+        <li>
+          <a href="{{ url()->current() }}?filter=available" 
+             class="hover:text-[#D4AF37] {{ $currentFilter == 'available' ? 'font-bold text-[#D4AF37]' : '' }}">
+            Available Product
+          </a>
+        </li>
+        <li>
+          <a href="{{ url()->current() }}?filter=recommended" 
+             class="hover:text-[#D4AF37] {{ $currentFilter == 'recommended' ? 'font-bold text-[#D4AF37]' : '' }}">
+            Recommended
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Kategori -->
+    <div class="border mt-6 p-4 rounded-lg text-[#556B2F] font-semibold">
+      <h2 class="text-lg mb-4">Kategori</h2>
+      <ul class="mt-4 space-y-2">
+        @foreach($categories as $category)
+          <li>
+            <a href="{{ route('menu.category', ['categoryId' => $category->id]) }}"
+               class="hover:text-[#D4AF37] {{ $currentCategoryId == $category->id ? 'font-bold text-[#D4AF37]' : '' }}">
+              {{ $category->name }}
+            </a>
+          </li>
+        @endforeach
+      </ul>
+    </div>
+  </div>
+
+  <!-- Konten Produk -->
+  <div class="w-4/5 grid grid-cols-4 gap-6">
+    @forelse($products as $produk)
+      <div class="border rounded-lg shadow-md overflow-hidden">
+        <img src="{{ asset('' . $produk->image) }}" alt="{{ $produk->name }}" class="w-full h-40 object-cover">
+        <div class="p-4 text-[#556B2F]">
+          <h3 class="font-bold">{{ $produk->name }}</h3>
+          <p class="line-through text-sm text-gray-400">
+            Rp. {{ number_format($produk->original_price ?? ($produk->price + 5000), 0, ',', '.') }}
+          </p>
+          <p class="text-[#D4AF37] font-semibold">
+            Rp. {{ number_format($produk->discount_price ?? $produk->price, 0, ',', '.') }}
+          </p>
+          <div class="mt-2 flex items-center text-yellow-500">
+            ★★★★★
+          </div>
+          <button class="mt-3 w-full bg-[#D4AF37] text-white py-1 rounded">Add to Cart</button>
+        </div>
+      </div>
+    @empty
+      <div class="col-span-4 text-center text-gray-400 italic">
+        Belum ada produk yang ditampilkan untuk filter ini.
+      </div>
+    @endforelse
+  </div>
+</div>
 @endsection
