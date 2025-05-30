@@ -7,29 +7,47 @@ use App\Models\Transaksi;
 use App\Models\TransaksiItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class TransaksiController extends Controller
 {
-    // Tampilkan semua transaksi dengan relasi user dan item produk
+    /**
+     * Hanya untuk admin: Tampilkan daftar semua transaksi.
+     */
     public function index()
     {
-        $transaksi = Transaksi::with('user', 'transaksiItems.product')->get();
-        return view('transaksi.index', compact('transaksi'));
+        $this->authorize('viewAny', Transaksi::class); // Optional jika pakai policy
+
+        $transaksis = Transaksi::with('user', 'transaksiItems.product')
+            ->latest()
+            ->paginate(10);
+
+        return view('transaksi.index', compact('transaksis'));
     }
 
-    // Tampilkan detail transaksi
+    /**
+     * Untuk customer: Tampilkan detail transaksi miliknya sendiri.
+     */
     public function show($id)
     {
-        $transaksi = Transaksi::with('user', 'transaksiItems.product')->findOrFail($id);
-        return view('transaksi.show', compact('transaksi'));
+        $transaksi = Transaksi::with(['transaksiItems.product', 'user'])
+            ->where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        return view('customer.transactions.show', compact('transaksi'));
     }
 
-    // Simpan transaksi baru sekaligus kurangi stok produk
+    /**
+     * Simpan transaksi baru dari customer.
+     */
     public function store(Request $request)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'items' => 'required|string',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
             'status' => 'required|string|in:pending,completed,cancelled',
             'no_hp' => 'required|string|max:20',
             'alamat' => 'required|string|max:255',
@@ -37,32 +55,23 @@ class TransaksiController extends Controller
             'shipping_method' => 'required|string',
         ]);
 
-        $items = json_decode($request->items, true);
-
-        if (!is_array($items) || count($items) == 0) {
-            return back()->withErrors('Data item tidak valid atau kosong.');
-        }
-
         DB::beginTransaction();
+
         try {
-            $transaksi = new Transaksi();
-            $transaksi->user_id = $request->user_id;
-            $transaksi->status = $request->status;
-            $transaksi->no_hp = $request->no_hp;
-            $transaksi->alamat = $request->alamat;
-            $transaksi->payment_method = $request->payment_method;
-            $transaksi->shipping_method = $request->shipping_method;
-            $transaksi->total_harga = 0;
-            $transaksi->save();
+            // Buat transaksi utama
+            $transaksi = Transaksi::create([
+                'user_id' => $request->user_id,
+                'status' => $request->status,
+                'no_hp' => $request->no_hp,
+                'alamat' => $request->alamat,
+                'payment_method' => $request->payment_method,
+                'shipping_method' => $request->shipping_method,
+                'total_harga' => 0,
+            ]);
 
             $totalHarga = 0;
 
-            foreach ($items as $itemData) {
-                if (!isset($itemData['id'], $itemData['quantity'], $itemData['price'])) {
-                    DB::rollBack();
-                    return back()->withErrors('Data item tidak lengkap.');
-                }
-
+            foreach ($request->items as $itemData) {
                 $product = Product::findOrFail($itemData['id']);
 
                 if ($product->stock < $itemData['quantity']) {
@@ -70,26 +79,26 @@ class TransaksiController extends Controller
                     return back()->withErrors("Stok produk '{$product->nama}' tidak cukup.");
                 }
 
-                // Kurangi stok produk
                 $product->stock -= $itemData['quantity'];
                 $product->save();
 
-                $item = new TransaksiItem();
-                $item->transaksi_id = $transaksi->id;
-                $item->product_id = $product->id;
-                $item->jumlah = $itemData['quantity'];
-                $item->total_harga = $product->harga * $itemData['quantity'];
-                $item->save();
+                $subtotal = $product->harga * $itemData['quantity'];
 
-                $totalHarga += $item->total_harga;
+                TransaksiItem::create([
+                    'transaksi_id' => $transaksi->id,
+                    'product_id' => $product->id,
+                    'jumlah' => $itemData['quantity'],
+                    'total_harga' => $subtotal,
+                ]);
+
+                $totalHarga += $subtotal;
             }
 
-            $transaksi->total_harga = $totalHarga;
-            $transaksi->save();
+            $transaksi->update(['total_harga' => $totalHarga]);
 
             DB::commit();
 
-            return redirect()->route('transaksi.show', $transaksi->id)
+            return redirect()->route('transactions.show', $transaksi->id)
                              ->with('success', 'Transaksi berhasil disimpan.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -97,7 +106,9 @@ class TransaksiController extends Controller
         }
     }
 
-    // Update status transaksi
+    /**
+     * Hanya untuk admin: Update status transaksi.
+     */
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -109,5 +120,39 @@ class TransaksiController extends Controller
         $transaksi->save();
 
         return back()->with('success', 'Status pesanan berhasil diupdate.');
+    }
+
+    /**
+     * Hanya untuk admin: Hapus transaksi dan kembalikan stok produk.
+     */
+    public function destroy($id)
+    {
+        $transaksi = Transaksi::with('transaksiItems.product')->findOrFail($id);
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($transaksi->transaksiItems as $item) {
+                if ($item->product) {
+                    $item->product->stock += $item->jumlah;
+                    $item->product->save();
+                }
+            }
+
+            $transaksi->transaksiItems()->delete();
+            $transaksi->delete();
+
+            // Redirect sesuai role
+            if (Auth::user()->hasRole('admin')) {
+                return redirect()->route('admin.transactions.index')->with('success', 'Transaksi berhasil dihapus.');
+            } else {
+                return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dihapus.');
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('Gagal menghapus transaksi: ' . $e->getMessage());
+        }
     }
 }

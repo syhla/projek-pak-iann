@@ -7,36 +7,38 @@ use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
-    // Middleware cek login dan role admin
     public function __construct()
     {
         $this->middleware('auth');
         $this->middleware('role:admin')->only(['index', 'approve', 'reject']);
+        $this->middleware('role:customer')->only(['store']);
     }
 
-    // Tampilkan semua komentar di admin panel
- public function index()
+    // Tampilkan semua komentar di admin panel dengan data terpisah berdasarkan status
+    public function index()
     {
-        $comments = Comment::with('user')->latest()->get();
+        $approvedComments = Comment::where('status', 'approved')->latest()->get();
+        $rejectedComments = Comment::where('status', 'rejected')->latest()->get();
+        $comments = Comment::latest()->get(); // semua komentar
 
-        return view('admin.comments.index', compact('comments'));
+        return view('admin.comments.index', compact('approvedComments', 'rejectedComments', 'comments'));
     }
 
     // Approve komentar
     public function approve(Comment $comment)
     {
-        $comment->update(['status' => 'Disetujui']);
+        $comment->update(['status' => 'approved']);
         return redirect()->back()->with('success', 'Komentar disetujui.');
     }
 
     // Reject komentar
     public function reject(Comment $comment)
     {
-        $comment->update(['status' => 'Ditolak']);
+        $comment->update(['status' => 'rejected']);
         return redirect()->back()->with('success', 'Komentar ditolak.');
     }
 
-    // Simpan komentar dari customer (middleware role:customer)
+    // Simpan komentar dari customer
     public function store(Request $request)
     {
         $request->validate([
@@ -45,9 +47,9 @@ class CommentController extends Controller
 
         $request->user()->comments()->create([
             'pesan' => $request->pesan,
-            'status' => 'Menunggu',
+            'status' => 'pending', // status menunggu persetujuan
         ]);
 
         return redirect()->route('welcome')->with('success', 'Komentar berhasil dikirim dan menunggu persetujuan.');
-        }
+    }
 }

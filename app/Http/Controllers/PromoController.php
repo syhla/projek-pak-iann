@@ -24,7 +24,6 @@ class PromoController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
             'original_price' => 'required|numeric|min:0',
             'discount_percentage' => 'required|numeric|min:0|max:100',
             'tanggal_mulai' => 'nullable|date',
@@ -34,7 +33,6 @@ class PromoController extends Controller
 
         $data = $request->only([
             'title',
-            'description',
             'original_price',
             'discount_percentage',
             'tanggal_mulai',
@@ -62,7 +60,6 @@ class PromoController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
             'original_price' => 'required|numeric|min:0',
             'discount_percentage' => 'required|numeric|min:0|max:100',
             'tanggal_mulai' => 'nullable|date',
@@ -72,7 +69,6 @@ class PromoController extends Controller
 
         $data = $request->only([
             'title',
-            'description',
             'original_price',
             'discount_percentage',
             'tanggal_mulai',

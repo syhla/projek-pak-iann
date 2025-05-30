@@ -4,51 +4,55 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Transaksi;
-use App\Models\CustomOrder;
-use App\Models\Product;
-use App\Models\User;
-use App\Models\Promo;
+use App\Models\Custom;
 
 class AdminDashboardController extends Controller
 {
-public function index()
-{
-    // Ambil komentar terbaru dengan relasi user
-    $comments = Comment::with('user')->latest()->get();
+    public function index()
+    {
+        // Ambil 5 komentar terbaru beserta relasi user
+        $comments = Comment::with('user')->latest()->take(5)->get();
 
-    // Ambil transaksi baru dengan status 'Baru' atau 'Pending' (sesuaikan dengan status kamu)
-    $transaksiBaru = Transaksi::with(['user', 'product'])->where('status', 'pending')->latest()->get();
-    $jumlahTransaksiBaru = $transaksiBaru->count();
+        // Ambil transaksi baru dengan status 'pending'
+        $transaksiBaru = Transaksi::with(['user', 'transaksiItems.product'])
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+        $jumlahTransaksiBaru = $transaksiBaru->count();
 
-    // Ambil custom orders terbaru
-    $customOrders = CustomOrder::latest()->take(5)->get();
+        // Ambil 5 pesanan custom terbaru
+        $customOrders = Custom::latest()->take(5)->get();
 
-    // Hitung jumlah pesanan custom baru (status = 'Belum Diproses')
-    $jumlahPesananBaru = CustomOrder::where('status', 'Belum Diproses')->count();
+        // Hitung jumlah pesanan custom baru dengan status 'approved'
+        $jumlahPesananBaru = Custom::where('status', 'approved')->count();
 
-    // Total pesanan custom
-    $totalCustom = CustomOrder::count();
+        // Ambil 5 pesanan custom terbaru dengan status 'menunggu' (pending approval)
+        $pendingCustomOrders = Custom::where('status', 'menunggu')->latest()->take(5)->get();
 
-    // Total nominal transaksi
-    $totalTransaksi = Transaksi::sum('total_harga'); // sesuaikan nama kolom
+        // Total nominal transaksi
+        $totalTransaksi = Transaksi::sum('total_harga') ?? 0;
 
-    // Contoh data transaksi per bulan (bulan 1 sampai 5)
-    $bulan = [1, 2, 3, 4, 5];
-    $jumlahTransaksi = [];
-    foreach ($bulan as $month) {
-        $jumlahTransaksi[] = Transaksi::whereMonth('created_at', $month)->count();
+        // Total semua pesanan custom
+        $totalCustom = Custom::count();
+
+        // Data transaksi per bulan untuk grafik (contoh bulan 1 sampai 5)
+        $bulan = [1, 2, 3, 4, 5];
+        $jumlahTransaksi = [];
+        foreach ($bulan as $month) {
+            $jumlahTransaksi[] = Transaksi::whereMonth('created_at', $month)->count();
+        }
+
+        return view('admin.dashboard', compact(
+            'comments',
+            'transaksiBaru',
+            'jumlahTransaksiBaru',
+            'customOrders',
+            'jumlahPesananBaru',
+            'pendingCustomOrders',
+            'totalCustom',
+            'totalTransaksi',
+            'bulan',
+            'jumlahTransaksi'
+        ));
     }
-
-    return view('admin.dashboard', compact(
-        'comments',
-        'transaksiBaru',
-        'jumlahTransaksiBaru',
-        'customOrders',
-        'jumlahPesananBaru',
-        'totalCustom',
-        'totalTransaksi',
-        'bulan',
-        'jumlahTransaksi'
-    ));
-}
 }

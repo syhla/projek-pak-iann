@@ -128,7 +128,7 @@
 </section>
 
 {{-- CUSTOM CREATION --}}
-<section class="max-w-6xl mx-auto px-6 space-y-10">
+<section class="max-w-6xl mx-auto px-6 mt-14 space-y-10">
   {{-- Judul --}}
   <div class="text-center">
     <div class="flex justify-center items-center mt-1">
@@ -148,18 +148,31 @@
       atau <strong>Buttercream</strong> yang dapat disesuaikan dengan preferensi Anda.
     </p>
 
-    <a href="#"
+@auth
+    @if(auth()->user()->hasRole('admin'))
+        <a href="{{ route('admin.custom.index') }}"
+           class="inline-block bg-[#556B2F] text-white px-6 py-3 rounded-md shadow hover:bg-[#445422] transition">
+            PESAN SEKARANG JUGA
+        </a>
+    @elseif(auth()->user()->hasRole('customer'))
+        <a href="{{ route('customer.custom.index') }}"
+           class="inline-block bg-[#556B2F] text-white px-6 py-3 rounded-md shadow hover:bg-[#445422] transition">
+            PESAN SEKARANG JUGA
+        </a>
+    @else
+        {{-- Kalau ada role lain yang login tapi bukan admin/customer --}}
+        <a href="{{ route('login') }}"
+           class="inline-block bg-[#556B2F] text-white px-6 py-3 rounded-md shadow hover:bg-[#445422] transition">
+            LOGIN TO ORDER
+        </a>
+    @endif
+@else
+    <a href="{{ route('login') }}"
        class="inline-block bg-[#556B2F] text-white px-6 py-3 rounded-md shadow hover:bg-[#445422] transition">
-      ORDER YOURS NOW
+        LOGIN TO ORDER
     </a>
-  </div>
-
-  {{-- Gambar --}}
-  <div class="max-w-5xl mx-auto">
-    <img src="{{ asset('EMPINK KUE.jpg') }}" alt="Custom Cake"
-         class="w-full rounded-lg shadow-xl object-cover">
-  </div>
-</section>
+@endauth
+</div>
 
 {{-- CUSTOMER REVIEW --}}
 <section class="max-w-6xl mx-auto px-6 space-y-10 py-10">

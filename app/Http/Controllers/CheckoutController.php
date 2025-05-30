@@ -5,27 +5,50 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use App\Models\TransaksiItem;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
-    // Halaman checkout, menerima input produk terpilih & kuantitas
+    // Tampil halaman checkout (ambil data dari session cart)
+    public function show()
+    {
+        $cart = session('cart', []);
+        $checkoutItems = [];
+
+        foreach ($cart as $productKey => $item) {
+            // Parse product_id dari key seperti 'product-2'
+            $parts = explode('-', $productKey);
+            $id = (int) $parts[1];
+
+            $checkoutItems[] = [
+                'product_id' => $id,
+                'name'       => $item['name'],
+                'price'      => $item['price'],
+                'quantity'   => $item['quantity'],
+            ];
+        }
+
+        return view('checkout', compact('checkoutItems'));
+    }
+
+    // Dapetin produk terpilih buat checkout, biasanya dari halaman cart
     public function checkoutPage(Request $request)
     {
-        $cart = session('cart', []); // ambil cart dari session, default []
-        $selected = $request->input('selected_products', []); // array id produk yg dipilih
-        $quantities = $request->input('quantities', []); // array quantity per product id
+        $cart = session('cart', []);
+        $selected = $request->input('selected_products', []);
+        $quantities = $request->input('quantities', []);
 
         $checkoutItems = [];
 
-        foreach ($selected as $productId) {
-            if (isset($cart[$productId])) {
+        foreach ($selected as $productKey) {
+            if (isset($cart[$productKey])) {
+                $parts = explode('-', $productKey);
+                $id = (int) $parts[1];
+
                 $checkoutItems[] = [
-                    'product_id' => $productId,
-                    'name'       => $cart[$productId]['name'],
-                    'price'      => $cart[$productId]['price'],
-                    'quantity'   => isset($quantities[$productId]) ? intval($quantities[$productId]) : $cart[$productId]['quantity'],
+                    'product_id' => $id,
+                    'name'       => $cart[$productKey]['name'],
+                    'price'      => $cart[$productKey]['price'],
+                    'quantity'   => isset($quantities[$productKey]) ? intval($quantities[$productKey]) : $cart[$productKey]['quantity'],
                 ];
             }
         }
@@ -33,80 +56,56 @@ class CheckoutController extends Controller
         return view('checkout', compact('checkoutItems'));
     }
 
-    // Proses konfirmasi checkout dan simpan transaksi & itemnya
+    // Proses confirm checkout, simpan transaksi, hapus cart
     public function confirm(Request $request)
     {
         $request->validate([
-            'items'          => 'required|string',
-            'payment_method' => 'required|string',
-            'shipping_method'=> 'required|string',
-            'no_hp'          => 'required|string|max:20',
-            'alamat'         => 'required|string|max:255',
+            'no_hp' => 'required',
+            'alamat' => 'required',
+            'payment_method' => 'required|in:transfer_bank,ovo,gopay,dana,shopeepay',
+            'shipping_method' => 'required|in:gosend,grabexpress',
+            'items' => 'required',
         ]);
 
-        // Pastikan user sudah login
-        $userId = Auth::id();
-        if (!$userId) {
-            return redirect()->route('login')->withErrors('Silakan login terlebih dahulu.');
-        }
+        $items = json_decode($request->items, true);
 
-        // Decode items JSON ke array
-        $items = json_decode($request->input('items'), true);
-
-        if (!is_array($items) || count($items) === 0) {
-            return back()->withErrors('Data item tidak valid.');
-        }
-
-        // Validasi tiap item: harus ada product_id, price, quantity dan harus numeric
-        foreach ($items as $index => $item) {
-            if (!isset($item['product_id'], $item['price'], $item['quantity'])) {
-                return back()->withErrors("Data item ke-$index tidak lengkap.");
-            }
-            if (!is_numeric($item['price']) || !is_numeric($item['quantity'])) {
-                return back()->withErrors("Data item ke-$index harus berupa angka.");
+        // Pastikan product_id integer, parsing kalau masih berbentuk 'product-2'
+        foreach ($items as &$item) {
+            if (is_string($item['product_id']) && str_contains($item['product_id'], '-')) {
+                $parts = explode('-', $item['product_id']);
+                $item['product_id'] = (int) $parts[1];
             }
         }
+        unset($item);
 
-        DB::beginTransaction();
+        // Hitung total harga
+        $totalHarga = 0;
+        foreach ($items as $item) {
+            $totalHarga += $item['price'] * $item['quantity'];
+        }
 
-        try {
-            $totalHarga = 0;
+        // Simpan transaksi & itemnya ke DB, termasuk total_harga
+        $transaksi = Transaksi::create([
+            'user_id' => auth()->id(),
+            'no_hp' => $request->no_hp,
+            'alamat' => $request->alamat,
+            'payment_method' => $request->payment_method,
+            'shipping_method' => $request->shipping_method,
+            'total_harga' => $totalHarga,
+            'status' => 'pending',
+        ]);
 
-            // Buat transaksi baru dulu
-            $transaksi = Transaksi::create([
-                'user_id'         => $userId,
-                'status'          => 'pending',
-                'no_hp'           => $request->no_hp,
-                'alamat'          => $request->alamat,
-                'payment_method'  => $request->payment_method,
-                'shipping_method' => $request->shipping_method,
-                'total_harga'     => 0, // nanti diupdate
+        foreach ($items as $item) {
+            TransaksiItem::create([
+                'transaksi_id' => $transaksi->id,
+                'product_id' => $item['product_id'],
+                'jumlah' => $item['quantity'],         // sesuaikan nama kolom, kalau di db pakai "jumlah"
+                'total_harga' => $item['price'] * $item['quantity'],  // hitung total harga per item
             ]);
-
-            // Simpan tiap item transaksi
-            foreach ($items as $item) {
-                TransaksiItem::create([
-                    'transaksi_id' => $transaksi->id,
-                    'product_id'   => $item['product_id'],
-                    'quantity'     => intval($item['quantity']),
-                    'price'        => floatval($item['price']),
-                ]);
-
-                $totalHarga += $item['price'] * $item['quantity'];
-            }
-
-            // Update total harga transaksi
-            $transaksi->update(['total_harga' => $totalHarga]);
-
-            DB::commit();
-
-            // Bersihkan cart session
-            session()->forget('cart');
-
-            return redirect()->route('welcome')->with('success', 'Checkout berhasil!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors('Terjadi kesalahan saat memproses transaksi: ' . $e->getMessage());
         }
+
+        session()->forget('cart');
+
+        return redirect()->route('customer.checkout.form')->with('success', 'Pesanan berhasil dikonfirmasi!');
     }
 }

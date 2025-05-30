@@ -8,7 +8,6 @@ class Promo extends Model
 {
     protected $fillable = [
         'title',
-        'description',
         'original_price',
         'discount_percentage',
         'tanggal_mulai',

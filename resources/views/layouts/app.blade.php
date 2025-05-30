@@ -97,12 +97,12 @@
               @if (Route::has('register'))
                 <a href="{{ route('register') }}" class="block px-4 py-2 hover:bg-[#D4AF37] hover:text-white font-semibold">Register</a>
               @endif
-            @else
-              @if($user->hasRole('admin'))
-                <a href="{{ url('/admin/dashboard') }}" class="block px-4 py-2 hover:bg-[#D4AF37] hover:text-white font-semibold">Dashboard Admin</a>
-              @elseif($user->hasRole('customer'))
-                <a href="{{ url('/customer/dashboard') }}" class="block px-4 py-2 hover:bg-[#D4AF37] hover:text-white font-semibold">Dashboard Customer</a>
-              @endif
+@else
+  @if(auth()->user()->hasRole('admin'))
+    <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 hover:bg-[#D4AF37] hover:text-white font-semibold">Dashboard Admin</a>
+  @elseif(auth()->user()->hasRole('customer'))
+    <a href="{{ url('/customer/dashboard') }}" class="block px-4 py-2 hover:bg-[#D4AF37] hover:text-white font-semibold">Dashboard Customer</a>
+  @endif
               <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="w-full text-left px-4 py-2 hover:bg-[#D4AF37] hover:text-white font-semibold">Logout</button>
@@ -165,7 +165,7 @@
       </div>
 
       <!-- Form hapus berdiri sendiri -->
-      <form action="{{ route('cart.remove', $productId) }}" method="POST" class="ml-3 flex-shrink-0">
+      <form action="{{ route('customer.cart.remove', $productId) }}" method="POST" class="ml-3 flex-shrink-0">
         @csrf
         @method('DELETE')
         <button type="submit"
@@ -179,7 +179,7 @@
 </ul>
 
     <!-- Form checkout terpisah -->
-    <form id="checkoutForm" action="{{ route('checkout.page') }}" method="POST" class="mt-6 flex justify-between items-center border-t pt-4 gap-6">
+    <form id="checkoutForm" action="{{ route('customer.checkout.page') }}" method="POST" class="mt-6 flex justify-between items-center border-t pt-4 gap-6">
       @csrf
       <button type="button" id="closeCartModal" onclick="closeCart()" class="px-6 py-2 bg-gray-300 rounded hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">Tutup</button>
       <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">Checkout</button>
@@ -193,51 +193,60 @@
     @yield('content')
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-[#556B2F] text-[#ffffff] py-10 border-t border-[#D4AF37]">
-    <div class="max-w-7xl mx-auto px-10 grid md:grid-cols-4 gap-8">
+<!-- FOOTER -->
+<footer class="bg-[#556B2F] text-white py-10 border-t border-[#D4AF37]">
+  <div class="max-w-7xl mx-auto px-10 grid md:grid-cols-4 gap-8">
 
-      <!-- Info Umum -->
-      <div>
-        <h3 class="font-bold mb-4">INFORMASI UMUM</h3>
-        <ul class="space-y-2">
-          <li><a href="#" class="inline-block transition duration-300 transform hover:translate-x-1 hover:text-[#D4AF37]">Tentang Kami</a></li>
-          <li><a href="#" class="inline-block transition duration-300 transform hover:translate-x-1 hover:text-[#D4AF37]">Contact Kami</a></li>
-          <li><a href="#" class="inline-block transition duration-300 transform hover:translate-x-1 hover:text-[#D4AF37]">Berita</a></li>
-          <li><a href="#" class="inline-block transition duration-300 transform hover:translate-x-1 hover:text-[#D4AF37]">Menu</a></li>
-        </ul>
+    <!-- Delivery Service -->
+<div>
+  <h3 class="font-bold mb-2 text-xl text-white">DELIVERY SERVICE</h3>
+  <div class="space-y-2">
+    <!-- Card 1 -->
+    <div class="bg-white p-1 rounded-lg shadow-md inline-block">
+      <img src="{{ asset('gosend.png') }}" alt="Gosend" class="h-6 w-auto">
+    </div>
+
+    <!-- Card 2 -->
+    <div class="bg-white p-1 rounded-lg shadow-md inline-block">
+      <img src="{{ asset('grab.png') }}" alt="Grab" class="h-6 w-auto">
+    </div>
+  </div>
+</div>
+
+    <!-- Info Umum -->
+    <div>
+      <h3 class="font-bold mb-4">INFORMASI UMUM</h3>
+      <ul class="space-y-2">
+        <li><a href="#" class="hover:text-[#D4AF37] transition">Tentang Kami</a></li>
+        <li><a href="#" class="hover:text-[#D4AF37] transition">Contact Kami</a></li>
+        <li><a href="#" class="hover:text-[#D4AF37] transition">Promo</a></li>
+        <li><a href="#" class="hover:text-[#D4AF37] transition">Menu</a></li>
+      </ul>
+    </div>
+
+    <!-- Kontak -->
+    <div>
+      <h3 class="font-bold mb-4">KONTAK KAMI</h3>
+      <p>📱 ‪+62 812 1314 1500‬</p>
+      <p>📧 namibakery@gmail.com</p>
+    </div>
+
+    <!-- Sosial Media -->
+    <div>
+      <h3 class="font-bold mb-4">TEMUKAN KAMI DI</h3>
+      <div class="flex gap-3">
+        <a href="#"><img src="https://img.icons8.com/ios-filled/24/ffffff/instagram-new.png" alt="Instagram" /></a>
+        <a href="#"><img src="https://img.icons8.com/ios-filled/24/ffffff/facebook-new.png" alt="Facebook" /></a>
+        <a href="#"><img src="https://img.icons8.com/ios-filled/24/ffffff/twitter.png" alt="Twitter" /></a>
       </div>
+    </div>
+  </div>
 
-      <!-- Kontak -->
-      <div>
-        <h3 class="font-bold mb-4">KONTAK KAMI</h3>
-        <p>📱 +62 812 1314 1500</p>
-        <p>📧 namibakery@gmail.com</p>
-      </div>
-
-          <!-- Sosmed -->
-          <div>
-            <h3 class="font-bold mb-4">TEMUKAN KAMI DI</h3>
-            <div class="flex gap-3 items-center">
-              <a href="#" aria-label="Instagram" class="hover:text-[#D4AF37] transition">
-                <img src="https://img.icons8.com/ios-filled/24/ffffff/instagram-new.png" alt="Instagram" />
-              </a>
-              <a href="#" aria-label="Facebook" class="hover:text-[#D4AF37] transition">
-                <img src="https://img.icons8.com/ios-filled/24/ffffff/facebook-new.png" alt="Facebook" />
-              </a>
-              <a href="#" aria-label="Twitter" class="hover:text-[#D4AF37] transition">
-                <img src="https://img.icons8.com/ios-filled/24/ffffff/twitter.png" alt="Twitter" />
-              </a>
-            </div>
-          </div>
-
-          <!-- Logo + Hak Cipta -->
-          <div class="flex flex-col items-center justify-center">
-            <img src="{{ asset('logo ijo.png') }}" alt="Logo Nami Bakery" class="h-16 mb-2" />
-            <p class="text-sm">© 2023 Nami Bakery. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+  <!-- Copyright -->
+  <div class="text-center mt-10 text-sm">
+    © 2023 Nami Bakery. All rights reserved.
+  </div>
+</footer>
 
 <script>
   // Toggle dropdown menu akun

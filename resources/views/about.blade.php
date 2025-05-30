@@ -56,7 +56,7 @@ Pada tahun 2020, kami membuka toko pertama kami — sebuah toko roti yang nyaman
 Di sinilah perjalanan Nami Bakery dimulai. Lebih dari sekadar toko, ini adalah wujud kenangan akan asal usul, gairah, dan kecintaan kami terhadap seni membuat kue.  </p>
 
   <div class="w-full max-w-5xl mx-auto">
-    <img src="{{ asset('EMPINK KUE.jpg') }}" alt="Our First Store"
+    <img src="{{ asset('oko.jpg') }}" alt="Our First Store"
          class="w-full rounded-lg shadow-xl">
   </div>
 </section>

@@ -52,12 +52,9 @@ class AdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            // Delete old image
             if ($slide->image) {
                 Storage::disk('public')->delete($slide->image);
             }
-
-            // Store new image
             $data['image'] = $request->file('image')->store('slides', 'public');
         }
 
@@ -67,7 +64,6 @@ class AdminController extends Controller
 
     public function destroySlide(Slide $slide)
     {
-        // Delete image if it exists
         if ($slide->image) {
             Storage::disk('public')->delete($slide->image);
         }
@@ -120,12 +116,9 @@ class AdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            // Delete old image
             if ($bestSeller->image) {
                 Storage::disk('public')->delete($bestSeller->image);
             }
-
-            // Store new image
             $data['image'] = $request->file('image')->store('bestSellers', 'public');
         }
 
@@ -135,7 +128,6 @@ class AdminController extends Controller
 
     public function destroyBestSeller(BestSeller $bestSeller)
     {
-        // Delete image if it exists
         if ($bestSeller->image) {
             Storage::disk('public')->delete($bestSeller->image);
         }

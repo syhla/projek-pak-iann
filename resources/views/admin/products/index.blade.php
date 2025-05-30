@@ -16,7 +16,7 @@
         </div>
 
         <!-- Daftar Produk -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-20 md:grid-cols-3 lg:grid-cols-3 gap-6">
             @foreach ($products as $product)
             <div class="bg-white rounded-xl shadow-md p-4">
                 @if ($product->image)

@@ -4,16 +4,25 @@
 
 @section('content')
 <div class="max-w-3xl mx-auto p-8">
-  <h1 class="text-4xl font-extrabold mb-8 text-green-700 border-b pb-4">Detail Transaksi #{{ $transaksi->id }}</h1>
+  <h1 class="text-3xl font-bold mb-6 text-green-700 border-b pb-2">
+    Detail Transaksi #{{ $transaksi->id }}
+  </h1>
 
-  <div class="mb-6">
+  {{-- Tanggal transaksi --}}
+  <div class="mb-4 text-gray-700">
+    <p><strong>Tanggal Transaksi:</strong> {{ $transaksi->created_at->format('d M Y H:i') }}</p>
+  </div>
+
+  {{-- Info pembeli dan transaksi --}}
+  <div class="mb-6 text-gray-800 space-y-1">
     <p><strong>Nama Pembeli:</strong> {{ $transaksi->user->name }}</p>
     <p><strong>No. HP:</strong> {{ $transaksi->no_hp }}</p>
     <p><strong>Alamat:</strong> {{ $transaksi->alamat }}</p>
     <p><strong>Metode Pembayaran:</strong> {{ ucfirst($transaksi->payment_method) }}</p>
     <p><strong>Metode Pengiriman:</strong> {{ ucfirst($transaksi->shipping_method) }}</p>
-    <p><strong>Status:</strong> 
-      <span class="px-2 py-1 rounded
+    <p>
+      <strong>Status:</strong>
+      <span class="inline-block px-2 py-1 rounded
         @if($transaksi->status == 'pending') bg-yellow-300 text-yellow-800
         @elseif($transaksi->status == 'completed') bg-green-300 text-green-800
         @elseif($transaksi->status == 'cancelled') bg-red-300 text-red-800
@@ -24,33 +33,45 @@
     </p>
   </div>
 
-  <table class="w-full border-collapse border border-gray-300 mb-6">
-    <thead>
-      <tr class="bg-green-100 text-green-900">
-        <th class="border border-gray-300 p-3">Produk</th>
-        <th class="border border-gray-300 p-3">Harga</th>
-        <th class="border border-gray-300 p-3">Jumlah</th>
-        <th class="border border-gray-300 p-3">Subtotal</th>
+  {{-- Tabel item transaksi --}}
+  <table class="w-full border border-gray-300 mb-6 text-gray-700">
+    <thead class="bg-green-100 text-green-900">
+      <tr>
+        <th class="border border-gray-300 px-3 py-2 text-left">Produk</th>
+        <th class="border border-gray-300 px-3 py-2 text-right">Harga</th>
+        <th class="border border-gray-300 px-3 py-2 text-center">Jumlah</th>
+        <th class="border border-gray-300 px-3 py-2 text-right">Subtotal</th>
       </tr>
     </thead>
     <tbody>
-      @foreach($transaksi->transaksiItems as $item)
-      <tr class="text-center">
-        <td class="border border-gray-300 p-3 text-left">{{ $item->product->nama ?? 'Produk tidak ditemukan' }}</td>
-        <td class="border border-gray-300 p-3">Rp {{ number_format($item->product->harga ?? 0, 0, ',', '.') }}</td>
-        <td class="border border-gray-300 p-3">{{ $item->jumlah }}</td>
-        <td class="border border-gray-300 p-3">Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
+      @forelse($transaksi->transaksiItems as $item)
+      <tr>
+<td class="border border-gray-300 px-3 py-2">{{ $item->product->name ?? 'Produk tidak ditemukan' }}</td>
+<td class="border border-gray-300 px-3 py-2 text-right">
+  Rp {{ number_format($item->product->price ?? 0, 0, ',', '.') }}
+</td>
+        <td class="border border-gray-300 px-3 py-2 text-center">{{ $item->jumlah }}</td>
+        <td class="border border-gray-300 px-3 py-2 text-right">
+          Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+        </td>
       </tr>
-      @endforeach
+      @empty
+      <tr>
+        <td colspan="4" class="text-center px-3 py-4 text-gray-500">Tidak ada item dalam transaksi ini.</td>
+      </tr>
+      @endforelse
     </tbody>
   </table>
 
-  <div class="text-right text-xl font-bold text-green-800">
+  {{-- Total harga --}}
+  <div class="text-right text-xl font-semibold text-green-800 mb-4">
     Total Harga: Rp {{ number_format($transaksi->total_harga, 0, ',', '.') }}
   </div>
 
-  <a href="{{ route('transaksi.index') }}" class="inline-block mt-6 px-6 py-3 bg-green-700 text-white rounded hover:bg-green-800 transition">
-    Kembali ke Daftar Transaksi
+  {{-- Tombol kembali --}}
+  <a href="{{ route('customer.dashboard') }}" 
+     class="inline-block px-5 py-2 bg-green-700 text-white rounded hover:bg-green-800 transition">
+    Kembali ke Dashboard
   </a>
 </div>
 @endsection

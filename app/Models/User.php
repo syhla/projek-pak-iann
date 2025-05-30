@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Comment; // jangan lupa import model Comment
+use App\Models\Comment;
+use App\Models\Transaksi;
 
 class User extends Authenticatable
 {
@@ -15,7 +16,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // pastikan kolom ini ada di tabel 'users'
+        'role',
     ];
 
     protected $hidden = [
@@ -27,25 +28,24 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    /**
-     * Cek apakah user punya role tertentu
-     */
     public function hasRole(string $role): bool
     {
         return $this->role === $role;
     }
 
-    /**
-     * Relasi User punya banyak komentar
-     */
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
     public function transactions()
+    {
+        return $this->hasMany(Transaksi::class);
+    }
+
+    public function user()
 {
-    return $this->hasMany(Transaksi::class);
+    return $this->belongsTo(User::class, 'customer_id');
 }
 
 }

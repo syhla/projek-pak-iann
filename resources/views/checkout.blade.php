@@ -4,13 +4,14 @@
 
 @section('content')
 <div class="max-w-3xl mx-auto p-8">
-  <h1 class="text-4xl font-extrabold mb-8 text-green-700 border-b pb-4">🛒 Checkout</h1>
 
-  @if(session('success'))
+    @if(session('success'))
     <div class="mb-6 bg-green-100 text-green-700 p-4 rounded">
       {{ session('success') }}
     </div>
-  @endif
+    @endif
+
+  <h1 class="text-4xl font-extrabold mb-8 text-green-700 border-b pb-4">🛒 Checkout</h1>
 
   @if(count($checkoutItems) > 0)
     @php $totalPrice = 0; @endphp
@@ -37,7 +38,7 @@
       Total: Rp {{ number_format($totalPrice, 0, ',', '.') }}
     </div>
 
-    <form action="{{ route('checkout.confirm') }}" method="POST" class="space-y-6 bg-white p-6 rounded shadow-md">
+    <form action="{{ route('customer.checkout.confirm') }}" method="POST" class="space-y-6 bg-white p-6 rounded shadow-md" onsubmit="this.querySelector('button[type=submit]').disabled = true">
       @csrf
 
       <input type="hidden" name="items" value='@json($checkoutItems)'>
@@ -58,33 +59,31 @@
 
       <div>
         <label for="payment_method" class="block font-semibold text-gray-700">Metode Pembayaran</label>
-        <select name="payment_method" id="payment_method" required class="w-full rounded border border-gray-300 p-2">
-          <option value="" disabled selected>Pilih metode pembayaran</option>
-          <option value="transfer">Transfer Bank</option>
-          <option value="cod">Cash on Delivery</option>
-          <option value="ewallet">E-Wallet</option>
-        </select>
+<select name="payment_method" required class="form-select">
+    <option value="transfer_bank">Transfer Bank</option>
+    <option value="ovo">OVO</option>
+    <option value="gopay">GoPay</option>
+    <option value="dana">DANA</option>
+    <option value="shopeepay">ShopeePay</option>
+</select>
         @error('payment_method')<div class="text-red-600 mt-1">{{ $message }}</div>@enderror
       </div>
 
       <div>
         <label for="shipping_method" class="block font-semibold text-gray-700">Metode Pengiriman</label>
-        <select name="shipping_method" id="shipping_method" required class="w-full rounded border border-gray-300 p-2">
-          <option value="" disabled selected>Pilih metode pengiriman</option>
-          <option value="jne">JNE</option>
-          <option value="tiki">TIKI</option>
-          <option value="grab">GrabExpress</option>
-          <option value="gojek">Gojek</option>
-        </select>
+<select name="shipping_method" required class="form-select">
+    <option value="gosend">GoSend</option>
+    <option value="grabexpress">Grab Express</option>
+</select>
         @error('shipping_method')<div class="text-red-600 mt-1">{{ $message }}</div>@enderror
       </div>
 
-      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+      <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50">
         Konfirmasi Pesanan
       </button>
     </form>
   @else
-    <p class="text-gray-600">Keranjang kamu kosong.</p>
+    <p class="text-gray-600 text-center">Keranjang kamu kosong atau tidak ada produk yang dipilih untuk checkout.</p>
   @endif
 </div>
 @endsection

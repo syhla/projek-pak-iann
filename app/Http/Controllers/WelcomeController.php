@@ -27,10 +27,10 @@ class WelcomeController extends Controller
         $slides = Slide::all();
 
         // Ambil komentar yang sudah disetujui, dengan relasi user
-        $comments = Comment::with('user')
-            ->where('status', 'Disetujui')
-            ->latest()
-            ->get();
+$comments = Comment::with('user')
+    ->where('status', 'approved')
+    ->latest()
+    ->get();
 
         $newProducts = NewProduct::where('is_active', true)->latest()->take(6)->get();
 

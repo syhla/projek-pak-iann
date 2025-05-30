@@ -94,7 +94,7 @@
                     </p>
 
                     {{-- Tombol Add to Cart --}}
-<form action="{{ route('cart.add', $promo->id) }}" method="POST" class="mt-auto">
+<form action="{{ route('customer.cart.add', $promo->id) }}" method="POST" class="mt-auto">
     @csrf
     <button type="submit"
         class="p-2 w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm bg-[#D4AF37] hover:bg-[#c6a32e] text-white fw-semibold"

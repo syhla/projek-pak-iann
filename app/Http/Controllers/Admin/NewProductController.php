@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class NewProductController extends Controller
 {
+    
     public function index()
     {
         $newProducts = NewProduct::with('category')->latest()->get();

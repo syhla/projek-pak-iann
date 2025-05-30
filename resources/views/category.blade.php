@@ -39,7 +39,7 @@
                              class="w-full h-44 object-cover">
 
                         <div class="p-4 flex flex-col flex-grow">
-                            <h3 class="text-md font-bold text-[#556B2F] uppercase mb-1">{{ $product->name }}</h3>
+                            <h3 class="text-xl font-bold text-[#556B2F] uppercase mb-1">{{ $product->name }}</h3>
 
                             @if ($product->original_price)
                                 <p class="text-gray-400 text-sm line-through mb-1">
@@ -51,16 +51,12 @@
                                 Rp {{ number_format($product->price, 0, ',', '.') }}
                             </p>
 
-                            {{-- Rating --}}
-                            @php $rating = $product->rating ?? 5; @endphp
-                            <div class="text-yellow-400 text-sm mb-4">
-                                @for ($i = 1; $i <= 5; $i++)
-                                    <span>{{ $i <= $rating ? '★' : '☆' }}</span>
-                                @endfor
-                            </div>
+      <div class="text-xl mb-4 flex items-center text-yellow-500">
+        ★★★★★
+      </div>
 
                             {{-- Add to Cart --}}
-                            <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-auto">
+                            <form action="{{ route('customer.cart.add', $product->id) }}" method="POST" class="mt-auto">
                                 @csrf
                                 <button type="submit"
                                     class="bg-[#556B2F] hover:bg-[#44552e] text-white font-semibold py-2 rounded-xl w-full transition duration-300">
